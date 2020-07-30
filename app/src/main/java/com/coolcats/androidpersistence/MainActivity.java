@@ -5,14 +5,19 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+
+import butterknife.BindView;
+import butterknife.ButterKnife;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "TAG_X";
@@ -23,6 +28,12 @@ public class MainActivity extends AppCompatActivity {
     private EditText messageEditText;
     private TextView displayTextView;
 
+    @BindView(R.id.button2)
+    Button openCameraButton;
+
+    @BindView(R.id.imageView)
+    ImageView cameraImageView;
+
     private SharedPreferences sharedPreferences;
 
     public static final int REQUEST_CODE = 707;
@@ -31,28 +42,27 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        ButterKnife.bind(this);
 
         final Intent secondActivityIntent = new Intent(this, ReceiveMessageActivity.class);
-
-        Log.d(TAG, "onCreate: ");
-        sharedPreferences = getSharedPreferences("com.coolcats.androidpersistence", Context.MODE_PRIVATE);
+        Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         send = findViewById(R.id.button);
         messageEditText = findViewById(R.id.editTextTextPersonName);
         displayTextView = findViewById(R.id.message_textview);
         send.setOnClickListener(
-                new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        String msg = messageEditText.getText().toString().trim();
-                        messages += "\n" + msg;
-                        messageEditText.setText("");
+                view -> {
+                    String msg = messageEditText.getText().toString().trim();
+                    messages += "\n" + msg;
+                    messageEditText.setText("");
 
-                        secondActivityIntent.putExtra("_MESSAGE_", "A1: " + msg);
-                        startActivityForResult(secondActivityIntent, REQUEST_CODE);
-                    }
+                    secondActivityIntent.putExtra("_MESSAGE_", "A1: " + msg);
+                    startActivityForResult(secondActivityIntent, REQUEST_CODE);
                 }
         );
+        openCameraButton.setOnClickListener(view ->{
+            startActivityForResult(cameraIntent, 111);
+        });
+
     }
 
     private void readSharedPref() {
@@ -71,7 +81,7 @@ public class MainActivity extends AppCompatActivity {
             Log.d(TAG, "onActivityResult: 2");
             String ms = data.getStringExtra("_MESSAGE_");
 
-            Log.d(TAG, "onActivityResult: "+ms);
+            Log.d(TAG, "onActivityResult: " + ms);
             if (ms != null)
                 displayTextView.setText(ms);
         }
